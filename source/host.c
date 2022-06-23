@@ -474,6 +474,11 @@ This clears all the memory used by both the client and server, but does
 not reinitialize anything.
 ================
 */
+extern int perk_order[8];
+extern int current_perk_order;
+extern double Hitmark_Time, crosshair_spread_time;
+extern float cur_spread;
+extern float crosshair_offset_step;
 void Host_ClearMemory (void)
 {
 	Con_DPrintf ("Clearing memory\n");
@@ -485,6 +490,20 @@ void Host_ClearMemory (void)
 	cls.signon = 0;
 	memset (&sv, 0, sizeof(sv));
 	memset (&cl, 0, sizeof(cl));
+	perk_order[0] = 0;
+	perk_order[1] = 0;
+	perk_order[2] = 0;
+	perk_order[3] = 0;
+	perk_order[4] = 0;
+	perk_order[5] = 0;
+	perk_order[6] = 0;
+	perk_order[7] = 0;
+	cl.perks = 0;
+	current_perk_order = 0;
+	crosshair_spread_time = 0;
+	crosshair_offset_step = 0;
+	cur_spread = 0;
+	Hitmark_Time = 0;
 }
 
 
@@ -893,31 +912,58 @@ void Host_Init (quakeparms_t *parms)
 #ifndef	_WIN32
 	// on Win32, sound initialization has to come before video initialization, so we
 	// can put up a popup if the sound hardware is in use
+		Con_Printf("0 start sound initialization\n");
 		S_Init ();
+		Con_Printf("1 Finished sound initialization\n");
 #else
 
 #ifdef	GLQUAKE
 	// FIXME: doesn't use the new one-window approach yet
 		S_Init ();
+		Con_Printf("2\n");
+
 #endif
 
 #endif	// _WIN32
 		CDAudio_Init ();
+				Con_Printf("3\n");
+
 		Sbar_Init ();
+
+				Con_Printf("4\n");
+
 		CL_Init ();
+
+				Con_Printf("5\n");
+
 #ifdef _WIN32 // on non win32, mouse comes before video for security reasons
 		IN_Init ();
+
+				Con_Printf("6\n");
+
 #endif
 	}
+			Con_Printf("7\n");
+
 
 	Cbuf_InsertText ("exec nzp.rc\n");
+		Con_Printf("8\n");
 
 	Hunk_AllocName (0, "-HOST_HUNKLEVEL-");
+
+			Con_Printf("9\n");
+
 	host_hunklevel = Hunk_LowMark ();
+
+			Con_Printf("10\n");
+
 
 	host_initialized = true;
 	
 	Sys_Printf ("========Nazi Zombies Portable Initialized=========\n");	
+
+			Con_Printf("11\n");
+
 }
 
 
