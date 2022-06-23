@@ -1427,9 +1427,9 @@ void HUD_Draw (void)
 
 void HUD_Draw (void)
 {
-	// naievil -- just a test hud to draw things
-	char test[256];
-	sprintf (test,"Weapon: %s", pr_strings+sv_player->v.weaponmodel);
-	Draw_String (0, 8, test);
+	// naievil -- just a test hud to draw things, why does this break the physical device build?
+	//char test[256];
+	//sprintf (test,"Weapon: %s", pr_strings+sv_player->v.weaponmodel);
+	//Draw_String (0, 8, test);
 
 }
