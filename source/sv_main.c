@@ -567,7 +567,6 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 			bits |= U_EXTEND2;
 		// Tomaz - QC Control End
 
-
 	//
 	// write the message
 	//
@@ -626,6 +625,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		if (bits & U_RENDERCOLOR3)
 			MSG_WriteFloat(msg, rendercolor[2]);
 		// Tomaz - QC Alpha Scale Glow End
+
 	}
 }
 

@@ -307,7 +307,7 @@ void CL_ParseServerInfo (void)
 
    loading_num_step = loading_num_step +nummodels + numsounds;
    loading_step = 1;
-  
+
   	for (i=1 ; i<nummodels ; i++)
 	{
 		cl.model_precache[i] = Mod_ForName (model_precache[i], false);
@@ -372,6 +372,18 @@ void CL_ParseUpdate (int bits)
 		i = MSG_ReadByte ();
 		bits |= (i<<8);
 	}
+
+	// Tomaz - QC Control Begin
+	if (bits & U_EXTEND1)
+	{
+		bits |= MSG_ReadByte() << 16;
+
+		if (bits & U_EXTEND2)
+		{
+			bits |= MSG_ReadByte() << 24;
+		}
+	}
+	// Tomaz - QC Control End
 
 	if (bits & U_LONGENTITY)	
 		num = MSG_ReadShort ();
@@ -492,6 +504,7 @@ if (bits&(1<<i))
 		ent->msg_angles[0][2] = MSG_ReadAngle();
 	else
 		ent->msg_angles[0][2] = ent->baseline.angles[2];
+
 // Tomaz - QC Alpha Scale Glow Begin
 	if (bits & U_RENDERAMT)
 	    ent->renderamt = MSG_ReadFloat();
@@ -518,6 +531,7 @@ if (bits&(1<<i))
     else
 	    ent->rendercolor[2] = 0;
 // Tomaz - QC Alpha Scale Glow End
+
 	if ( bits & U_NOLERP )
 		ent->forcelink = true;
 
