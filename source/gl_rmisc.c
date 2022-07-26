@@ -191,6 +191,8 @@ void R_Init (void)
 	Cvar_RegisterVariable (&r_lerpmodels);
 	Cvar_RegisterVariable (&r_lerpmove);
 
+	Cvar_RegisterVariable (&r_farclip);
+
 	Cvar_RegisterVariable (&gl_finish);
 	Cvar_RegisterVariable (&gl_clear);
 	Cvar_RegisterVariable (&gl_texsort);
@@ -210,6 +212,7 @@ void R_Init (void)
 	Cvar_RegisterVariable (&gl_reporttjunctions);
 
 	Cvar_RegisterVariable (&gl_doubleeyes);
+
 
 	R_InitParticles ();
 	R_InitParticleTexture ();

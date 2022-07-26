@@ -64,7 +64,6 @@ void R_InitParticles (void)
 			Hunk_AllocName (r_numparticles * sizeof(particle_t), "particles");
 }
 
-#ifdef QUAKE2
 void R_DarkFieldParticles (entity_t *ent)
 {
 	int			i, j, k;
@@ -88,7 +87,7 @@ void R_DarkFieldParticles (entity_t *ent)
 				active_particles = p;
 		
 				p->die = cl.time + 0.2 + (rand()&7) * 0.02;
-				p->color = 150 + rand()%6;
+				p->color[0] = p->color[1] = p->color[2] = 150 + rand()%6;
 				p->type = pt_slowgrav;
 				
 				dir[0] = j*8;
@@ -104,7 +103,6 @@ void R_DarkFieldParticles (entity_t *ent)
 				VectorScale (dir, vel, p->vel);
 			}
 }
-#endif
 
 
 /*
@@ -165,7 +163,7 @@ avelocities[0][i] = (rand()&255) * 0.01;
 		active_particles = p;
 
 		p->die = cl.time + 0.01;
-		p->color = 0x6f;
+		p->color[0] = p->color[1] = p->color[2] = 0x6f;
 		p->type = pt_explode;
 		
 		p->org[0] = ent->origin[0] + r_avertexnormals[i][0]*dist + forward[0]*beamlength;			
@@ -231,7 +229,7 @@ void R_ReadPointFile_f (void)
 		active_particles = p;
 		
 		p->die = 99999;
-		p->color = (-c)&15;
+		p->color[0] = p->color[1] = p->color[2] = (-c)&15;
 		p->type = pt_static;
 		VectorCopy (vec3_origin, p->vel);
 		VectorCopy (org, p->org);
@@ -289,7 +287,7 @@ void R_ParticleExplosion (vec3_t org)
 		active_particles = p;
 
 		p->die = cl.time + 5;
-		p->color = ramp1[0];
+		p->color[0] = p->color[1] = p->color[2] = ramp1[0];
 		p->ramp = rand()&3;
 		if (i & 1)
 		{
@@ -334,7 +332,7 @@ void R_ParticleExplosion2 (vec3_t org, int colorStart, int colorLength)
 		active_particles = p;
 
 		p->die = cl.time + 0.3;
-		p->color = colorStart + (colorMod % colorLength);
+		p->color[0] = p->color[1] = p->color[2] = colorStart + (colorMod % colorLength);
 		colorMod++;
 
 		p->type = pt_blob;
@@ -371,7 +369,7 @@ void R_BlobExplosion (vec3_t org)
 		if (i & 1)
 		{
 			p->type = pt_blob;
-			p->color = 66 + rand()%6;
+			p->color[0] = p->color[1] = p->color[2] = 66 + rand()%6;
 			for (j=0 ; j<3 ; j++)
 			{
 				p->org[j] = org[j] + ((rand()%32)-16);
@@ -381,7 +379,7 @@ void R_BlobExplosion (vec3_t org)
 		else
 		{
 			p->type = pt_blob2;
-			p->color = 150 + rand()%6;
+			p->color[0] = p->color[1] = p->color[2] = 150 + rand()%6;
 			for (j=0 ; j<3 ; j++)
 			{
 				p->org[j] = org[j] + ((rand()%32)-16);
@@ -414,7 +412,7 @@ void R_RunParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 		if (count == 1024)
 		{	// rocket explosion
 			p->die = cl.time + 5;
-			p->color = ramp1[0];
+			p->color[0] = p->color[1] = p->color[2] = ramp1[0];
 			p->ramp = rand()&3;
 			if (i & 1)
 			{
@@ -438,7 +436,7 @@ void R_RunParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 		else
 		{
 			p->die = cl.time + 0.1*(rand()%5);
-			p->color = (color&~7) + (rand()&7);
+			p->color[0] = p->color[1] = p->color[2] = (color&~7) + (rand()&7);
 			p->type = pt_slowgrav;
 			for (j=0 ; j<3 ; j++)
 			{
@@ -475,7 +473,7 @@ void R_LavaSplash (vec3_t org)
 				active_particles = p;
 		
 				p->die = cl.time + 2 + (rand()&31) * 0.02;
-				p->color = 224 + (rand()&7);
+				p->color[0] = p->color[1] = p->color[2] = 224 + (rand()&7);
 				p->type = pt_slowgrav;
 				
 				dir[0] = j*8 + (rand()&7);
@@ -517,7 +515,7 @@ void R_TeleportSplash (vec3_t org)
 				active_particles = p;
 		
 				p->die = cl.time + 0.2 + (rand()&7) * 0.02;
-				p->color = 7 + (rand()&7);
+				p->color[0] = p->color[1] = p->color[2] = 7 + (rand()&7);
 				p->type = pt_slowgrav;
 				
 				dir[0] = j*8;
@@ -571,7 +569,7 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 		{
 			case 0:	// rocket trail
 				p->ramp = (rand()&3);
-				p->color = ramp3[(int)p->ramp];
+				p->color[0] = p->color[1] = p->color[2] = ramp3[(int)p->ramp];
 				p->type = pt_fire;
 				for (j=0 ; j<3 ; j++)
 					p->org[j] = start[j] + ((rand()%6)-3);
@@ -579,7 +577,7 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 			case 1:	// smoke smoke
 				p->ramp = (rand()&3) + 2;
-				p->color = ramp3[(int)p->ramp];
+				p->color[0] = p->color[1] = p->color[2] = ramp3[(int)p->ramp];
 				p->type = pt_fire;
 				for (j=0 ; j<3 ; j++)
 					p->org[j] = start[j] + ((rand()%6)-3);
@@ -587,7 +585,7 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 			case 2:	// blood
 				p->type = pt_grav;
-				p->color = 67 + (rand()&3);
+				p->color[0] = p->color[1] = p->color[2] = 67 + (rand()&3);
 				for (j=0 ; j<3 ; j++)
 					p->org[j] = start[j] + ((rand()%6)-3);
 				break;
@@ -597,9 +595,9 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 				p->die = cl.time + 0.5;
 				p->type = pt_static;
 				if (type == 3)
-					p->color = 52 + ((tracercount&4)<<1);
+					p->color[0] = p->color[1] = p->color[2] = 52 + ((tracercount&4)<<1);
 				else
-					p->color = 230 + ((tracercount&4)<<1);
+					p->color[0] = p->color[1] = p->color[2] = 230 + ((tracercount&4)<<1);
 			
 				tracercount++;
 
@@ -618,14 +616,14 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 			case 4:	// slight blood
 				p->type = pt_grav;
-				p->color = 67 + (rand()&3);
+				p->color[0] = p->color[1] = p->color[2] = 67 + (rand()&3);
 				for (j=0 ; j<3 ; j++)
 					p->org[j] = start[j] + ((rand()%6)-3);
 				len -= 3;
 				break;
 
 			case 6:	// voor trail
-				p->color = 9*16 + 8 + (rand()&3);
+				p->color[0] = p->color[1] = p->color[2] = 9*16 + 8 + (rand()&3);
 				p->type = pt_static;
 				p->die = cl.time + 0.3;
 				for (j=0 ; j<3 ; j++)
@@ -740,7 +738,7 @@ void R_DrawParticles (void)
 			if (p->ramp >= 6)
 				p->die = -1;
 			else
-				p->color = ramp3[(int)p->ramp];
+				p->color[0] = p->color[1] = p->color[2] = ramp3[(int)p->ramp];
 			p->vel[2] += grav;
 			break;
 
@@ -749,7 +747,7 @@ void R_DrawParticles (void)
 			if (p->ramp >=8)
 				p->die = -1;
 			else
-				p->color = ramp1[(int)p->ramp];
+				p->color[0] = p->color[1] = p->color[2] = ramp1[(int)p->ramp];
 			for (i=0 ; i<3 ; i++)
 				p->vel[i] += p->vel[i]*dvel;
 			p->vel[2] -= grav;
@@ -760,7 +758,7 @@ void R_DrawParticles (void)
 			if (p->ramp >=8)
 				p->die = -1;
 			else
-				p->color = ramp2[(int)p->ramp];
+				p->color[0] = p->color[1] = p->color[2] = ramp2[(int)p->ramp];
 			for (i=0 ; i<3 ; i++)
 				p->vel[i] -= p->vel[i]*frametime;
 			p->vel[2] -= grav;
