@@ -119,6 +119,8 @@ void Host_EndGame (char *message, ...)
 	else
 		CL_Disconnect ();
 
+    Clear_LoadingFill ();
+
 	longjmp (host_abortserver, 1);
 }
 
@@ -154,6 +156,8 @@ void Host_Error (char *error, ...)
 
 	CL_Disconnect ();
 	cls.demonum = -1;
+
+	Clear_LoadingFill ();
 
 	inerror = false;
 
@@ -980,6 +984,8 @@ void Host_Shutdown(void)
 
 // keep Con_Printf from trying to update the screen
 	scr_disabled_for_loading = true;
+
+    Clear_LoadingFill ();
 
 	Host_WriteConfiguration (); 
 

@@ -314,19 +314,32 @@ void CL_ParseServerInfo (void)
 		if (cl.model_precache[i] == NULL)
 		{
 			Con_Printf("Model %s not found\n", model_precache[i]);
+			loading_cur_step++;
 			return;
 		}
 		CL_KeepaliveMessage ();
+		loading_cur_step++;
+		strcpy(loading_name, model_precache[i]);
+		SCR_UpdateScreen ();
 	}
+	SCR_UpdateScreen ();
+
+	loading_step = 4;
 
 	S_BeginPrecaching ();
 	for (i=1 ; i<numsounds ; i++)
 	{
 		cl.sound_precache[i] = S_PrecacheSound (sound_precache[i]);
 		CL_KeepaliveMessage ();
+		loading_cur_step++;
+		strcpy(loading_name, sound_precache[i]);
+		SCR_UpdateScreen ();
 	}
 	S_EndPrecaching ();
 
+	SCR_UpdateScreen ();
+
+   	Clear_LoadingFill ();
 
 // local state
 	cl_entities[0].model = cl.worldmodel = cl.model_precache[1];
