@@ -2303,8 +2303,10 @@ int loadtextureimage (char* filename, int matchwidth, int matchheight, qboolean 
 {
 	int texnum;
 	byte *data;
-	if (!(data = loadimagepixels (filename, complain, matchwidth, matchheight))) 
+	if (!(data = loadimagepixels (filename, complain, matchwidth, matchheight))) { 
+		Con_DPrintf("Cannot load image %s\n", filename);
 		return 0;
+	}
 	texnum = GL_LoadTexture (filename, image_width, image_height, data, mipmap, qtrue, 4);
 	free(data);
 	return texnum;

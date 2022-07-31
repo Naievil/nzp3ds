@@ -342,6 +342,8 @@ typedef struct
 
 #include "cl_hud.h"
 
+#include "gl_decal.h"
+
 //=============================================================================
 
 // the host system specifies the base of the directory tree, the
@@ -406,6 +408,8 @@ extern qboolean		isDedicated;
 extern int			minimum_memory;
 
 #define ISUNDERWATER(x) ((x) == CONTENTS_WATER || (x) == CONTENTS_SLIME || (x) == CONTENTS_LAVA)
+
+int SV_HullPointContents (hull_t *hull, int num, vec3_t p);
 #define TruePointContents(p) SV_HullPointContents(&cl.worldmodel->hulls[0], 0, p)
 
 //

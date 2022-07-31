@@ -390,8 +390,9 @@ void QMB_AllocParticles (void)
 	//if (particles)
 	//	Con_Printf("QMB_AllocParticles: internal error >particles<\n");
 
-    if(r_numparticles < 1)
-        Con_Printf("QMB_AllocParticles: internal error >num particles<\n");
+    if (r_numparticles < 1) {
+    	Con_Printf("QMB_AllocParticles: internal error >num particles<\n");
+    }
 
 	// can't alloc on Hunk, using native memory
 	particles = (particle_t *) malloc (r_numparticles * sizeof(particle_t));
@@ -457,10 +458,12 @@ void QMB_InitParticles (void)
 	loading_cur_step++;
 	SCR_UpdateScreen ();
 
-	for (i = 0 ; i < 5 ; i++)
+	for (i = 0 ; i < 5 ; i++) {
 		ADD_PARTICLE_TEXTURE(ptex_q3blood, particleimage, i, 5, i * 64, 128, (i + 1) * 64, 192);
-		ADD_PARTICLE_TEXTURE(ptex_q3smoke, particleimage, 0, 1, 256, 0, 384, 128);
-		ADD_PARTICLE_TEXTURE(ptex_q3blood_trail, particleimage, 0, 1, 320, 128, 384, 192);
+	}
+
+	ADD_PARTICLE_TEXTURE(ptex_q3smoke, particleimage, 0, 1, 256, 0, 384, 128);
+	ADD_PARTICLE_TEXTURE(ptex_q3blood_trail, particleimage, 0, 1, 320, 128, 384, 192);
 	
 	loading_cur_step++;
 	SCR_UpdateScreen ();
@@ -1528,56 +1531,37 @@ void R_CalcBeamVerts (float *vert, vec3_t org1, vec3_t org2, float width)
 }
 
 #define DRAW_PARTICLE_BILLBOARD(_ptex, _p, _coord)		\
-	sceGumPushMatrix ();									\
-														\
-    const vec3_t translation =                  \
-    {                                                   \
-	 _p->org[0], _p->org[1], _p->org[2]                 \
-    };                                                  \
-    sceGumTranslate(&translation);                      \
-														\
-    const vec3_t scale =                        \
+	glPushMatrix ();									\
+    glTranslatef(_p->org[0], _p->org[1], _p->org[2]);   \
+	glScalef(_p->size, _p->size, _p->size);			    \
+	if (_p->rotspeed || pt->id == p_q3rocketsmoke || pt->id == p_q3grenadesmoke) \
 	{                                                   \
-	 _p->size, _p->size, _p->size                       \
-	};                                                  \
-	sceGumScale(&scale);			                    \
-														\
-	if (_p->rotspeed || pt->id == p_q3rocketsmoke || pt->id == p_q3grenadesmoke)\
-	{                                                   \
-		const vec3_t rotation =                 \
-	    {                                               \
-		    vpn[0] * (M_PI / 180.0f),                  \
-		    vpn[1] * (M_PI / 180.0f),                  \
-		    vpn[2] * (M_PI / 180.0f)                   \
-	    };                                              \
-	    sceGumRotateZYX(&rotation);   					\
-	}                                                   \
-	sceGuColor(GU_RGBA(_p->color[0], _p->color[1], _p->color[2], _p->color[3]));\
-														\
-	sceGumUpdateMatrix();                               \
-													    \
+	    glRotatef(	0,									\
+	    			vpn[0] * (M_PI / 180.0f),           \
+		 			vpn[1] * (M_PI / 180.0f),           \
+		    		vpn[2] * (M_PI / 180.0f));   		\
+	}													\
+	glColor4f(_p->color[0]/255, _p->color[1]/255, _p->color[2]/255, _p->color[3]/255); \
 	struct vertex                                       \
 	{                                                   \
 	  float u, v;                                       \
 	  float x, y, z;                                    \
 	};                                                  \
-	struct vertex* const df = (struct vertex*)(malloc(sizeof(struct vertex) * 4));\
-														\
-	df[0].u = _ptex->coords[_p->texindex][0]; df[0].v = _ptex->coords[_p->texindex][3];\
-	df[0].x = _coord[0][0]; df[0].y = _coord[0][1]; df[0].z = _coord[0][2];            \
-	df[1].u = _ptex->coords[_p->texindex][0]; df[1].v = _ptex->coords[_p->texindex][1];\
-	df[1].x = _coord[1][0]; df[1].y = _coord[1][1]; df[1].z = _coord[1][2];            \
-	df[2].u = _ptex->coords[_p->texindex][2]; df[2].v = _ptex->coords[_p->texindex][1];\
-	df[2].x = _coord[2][0]; df[2].y = _coord[2][1]; df[2].z = _coord[2][2];            \
-	df[3].u = _ptex->coords[_p->texindex][2]; df[3].v = _ptex->coords[_p->texindex][3];\
-	df[3].x = _coord[3][0]; df[3].y = _coord[3][1]; df[3].z = _coord[3][2];            \
-	//sceGuDrawArray(GL_TRIANGLE_FAN, GU_TEXTURE_32BITF | GU_VERTEX_32BITF, 4, 0, df);   \ // naievil -- fixme \
-    sceGuColor(GU_RGBA(0xff,0xff,0xff,0xff));           \
-														\
-	sceGumPopMatrix ();                                 \
-    sceGumUpdateMatrix();
+	struct vertex* const df = (struct vertex*)(malloc(sizeof(struct vertex) * 4)); \
+	df[0].u = _ptex->coords[_p->texindex][0]; df[0].v = _ptex->coords[_p->texindex][3]; \
+	df[0].x = _coord[0][0]; df[0].y = _coord[0][1]; df[0].z = _coord[0][2];             \
+	df[1].u = _ptex->coords[_p->texindex][0]; df[1].v = _ptex->coords[_p->texindex][1]; \
+	df[1].x = _coord[1][0]; df[1].y = _coord[1][1]; df[1].z = _coord[1][2];             \
+	df[2].u = _ptex->coords[_p->texindex][2]; df[2].v = _ptex->coords[_p->texindex][1]; \
+	df[2].x = _coord[2][0]; df[2].y = _coord[2][1]; df[2].z = _coord[2][2];             \
+	df[3].u = _ptex->coords[_p->texindex][2]; df[3].v = _ptex->coords[_p->texindex][3]; \
+	df[3].x = _coord[3][0]; df[3].y = _coord[3][1]; df[3].z = _coord[3][2];             \
+	glBegin (GL_TRIANGLE_FAN); 							\
+	glVertex4fv (df);									\
+	glEnd ();											\
+    glColor4f(1,1,1,1);           						\
+	glPopMatrix ();                                		
 
-//extern ScePspFMatrix4	r_world_matrix[16];
 void QMB_DrawParticles (void)
 {
 	int		j, i;
@@ -1602,10 +1586,10 @@ void QMB_DrawParticles (void)
 	VectorNegate (billboard[2], billboard[0]);
 	VectorNegate (billboard[3], billboard[1]);
 
-   	sceGuDepthMask (GL_TRUE);
-	sceGuEnable (GL_BLEND);
-	sceGuTexFunc(GL_MODULATE , GL_RGBA);
-	sceGuShadeModel (GL_SMOOTH);
+   	glDepthMask (GL_TRUE);
+	glEnable (GL_BLEND);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glShadeModel (GL_SMOOTH);
 
 	for (i = 0 ; i < num_particletypes ; i++)
 	{
@@ -1614,7 +1598,7 @@ void QMB_DrawParticles (void)
 		if (!pt->start)
 			continue;
 
-		sceGuBlendFunc (GL_ADD, pt->SrcBlend, pt->DstBlend, 0, 0xFFFFFFFF); //edited fixed value to 1 from 0 - shpuld
+		glBlendFunc (pt->SrcBlend, pt->DstBlend);
 
 		switch (pt->drawtype)
 		{
@@ -1640,7 +1624,7 @@ void QMB_DrawParticles (void)
 
 					struct vertex* const out = (struct vertex*)(malloc(sizeof(struct vertex) * 4));
 
-					sceGuColor(GU_RGBA(p->color[0], p->color[1], p->color[2], p->color[3]));
+					glColor4f(p->color[0]/255, p->color[1]/255, p->color[2]/255, p->color[3]/255);
 					R_CalcBeamVerts (varray_vertex, p->org, p->endorg, p->size / 3.0);
 
 					out[0].u = 1;
@@ -1671,13 +1655,14 @@ void QMB_DrawParticles (void)
 					out[3].y = varray_vertex[13];
 					out[3].z = varray_vertex[14];
 
-					// naievil -- fixme
-					//sceGuDrawArray(GL_TRIANGLE_FAN,GU_TEXTURE_32BITF | GU_VERTEX_32BITF,4, 0, out);
-					sceGuColor(GU_RGBA(0xff,0xff,0xff,0xff)); //return to normal color
+					glBegin (GL_TRIANGLE_FAN);
+					glVertex4fv (out);
+					glEnd ();
+					glColor4f(1,1,1,1); //return to normal color
 				}
 				break;
 			case pd_spark:
-				sceGuDisable (GL_TEXTURE_2D);
+				glDisable (GL_TEXTURE_2D);
 				for (p = pt->start ; p ; p = p->next)
 				{
 					if (particle_time < p->start || particle_time >= p->die)
@@ -1694,12 +1679,12 @@ void QMB_DrawParticles (void)
 
 					struct vertex* const out = (struct vertex*)(malloc(sizeof(struct vertex) * 9));
 
-					sceGuColor(GU_RGBA(p->color[0], p->color[1], p->color[2], p->color[3]));
+					glColor4f(p->color[0]/255, p->color[1]/255, p->color[2]/255, p->color[3]/255);
 
 					for (int gh=0 ; gh<3 ; gh++)
 						out[0].xyz[gh] = p->org[gh];
 
-					sceGuColor(GU_RGBA(p->color[0] >> 1, p->color[1] >> 1, p->color[2] >> 1, p->color[3] >> 1));
+					glColor4f((p->color[0] >> 1)/255, (p->color[1] >> 1)/255, (p->color[2] >> 1)/255, (p->color[3] >> 1)/255);
 
 					int vt = 1;
 
@@ -1710,15 +1695,16 @@ void QMB_DrawParticles (void)
 						out[vt].xyz[k] = p->org[k] - p->vel[k] / 8 + vright[k] * cost[1%7] * p->size + vup[k] * sint[j%7] * p->size;
 					  vt = vt + 1;
 					}
-					// naievil -- fixme
-				    //sceGuDrawArray(GL_TRIANGLE_FAN, GU_VERTEX_32BITF, 9, 0, out);
 
-					sceGuColor(GU_RGBA(0xff,0xff,0xff,0xff)); //return to normal color
+					glBegin (GL_TRIANGLE_FAN);
+					glVertex4fv (out);
+					glEnd ();
+					glColor4f(1,1,1,1); //return to normal color
 				}
-				sceGuEnable (GL_TEXTURE_2D);
+				glEnable (GL_TEXTURE_2D);
 				break;
 			case pd_sparkray:
-				sceGuDisable (GL_TEXTURE_2D);
+				glDisable (GL_TEXTURE_2D);
 				for (p = pt->start ; p ; p = p->next)
 				{
 					if (particle_time < p->start || particle_time >= p->die)
@@ -1732,7 +1718,7 @@ void QMB_DrawParticles (void)
 						VectorCopy(p->org, neworg);
 
 					//R00k added -start-
-					//sceGuEnable (GL_BLEND);
+					//glEnable (GL_BLEND);
 					//p->color[3] = bound(0, 0.3, 1) * 255;
 					//R00k added -end-
 					//glColor4ubv (p->color);
@@ -1744,13 +1730,13 @@ void QMB_DrawParticles (void)
 
 		            struct vertex* const out = (struct vertex*)(malloc(sizeof(struct vertex) * 9));
 
-				    sceGuColor(GU_RGBA(p->color[0], p->color[1], p->color[2], p->color[3]));
+				    glColor4f(p->color[0]/255, p->color[1]/255, p->color[2]/255, p->color[3]/255);
 
 					for (int gh=0 ; gh<3 ; gh++)
 					  out[0].xyz[gh] = p->endorg[gh];
 
 
-					sceGuColor(GU_RGBA(p->color[0] >> 1, p->color[1] >> 1, p->color[2] >> 1, p->color[3] >> 1));
+					glColor4f((p->color[0] >> 1)/255, (p->color[1] >> 1)/255, (p->color[2] >> 1)/255, (p->color[3] >> 1)/255);
 
 					int vt = 1;
 
@@ -1761,13 +1747,13 @@ void QMB_DrawParticles (void)
 
 					  vt = vt + 1;
 					}
-					// naievil -- fixme
-					//sceGuDrawArray(GL_TRIANGLE_FAN, GU_VERTEX_32BITF, 9, 0, out);
-
-					sceGuColor(GU_RGBA(0xff,0xff,0xff,0xff)); //return to normal color
+					glBegin (GL_TRIANGLE_FAN);
+					glVertex4fv (out);
+					glEnd ();
+					glColor4f(1,1,1,1); //return to normal color
 
 				}
-				sceGuEnable (GL_TEXTURE_2D);
+				glEnable (GL_TEXTURE_2D);
 				break;
 
 		case pd_billboard:
@@ -1789,12 +1775,12 @@ void QMB_DrawParticles (void)
 				}
 				
 				if(pt->texture == ptex_muzzleflash || pt->texture == ptex_muzzleflash2 || pt->texture == ptex_muzzleflash3)
-					sceGuDepthRange(0, 19660);
+					glDepthRange(0, 19660);
 				
 				DRAW_PARTICLE_BILLBOARD(ptex, p, billboard);
 				
 				if(pt->texture == ptex_muzzleflash || pt->texture == ptex_muzzleflash2 || pt->texture == ptex_muzzleflash3)
-					sceGuDepthRange(0, 65535);
+					glDepthRange(0, 65535);
 			}
 			break;
 
@@ -1831,25 +1817,20 @@ void QMB_DrawParticles (void)
 				if (particle_time < p->start || particle_time >= p->die)
 					continue;
 
-				sceGuDisable (GL_CULL_FACE);
+				glDisable (GL_CULL_FACE);
 
 				for (j=0 ; j<2 ; j++)
 				{
-					sceGumPushMatrix ();
+					glPushMatrix ();
 
-					const vec3_t translation =
-	                {
-		            p->org[0], p->org[1], p->org[2]
-	                };
-	                sceGumTranslate(&translation);
+	                glTranslatef(p->org[0], p->org[1], p->org[2]);
 
 					//glRotatef (!j ? 45 : -45, 0, 0, 1);
 
-	                sceGumRotateZ(!j ? 45 : -45 * (M_PI / 180.0f));
+	                // naievil -- I don't know the equivalent of this
+	                //sceGumRotateZ(!j ? 45 : -45 * (M_PI / 180.0f));
 
-					sceGuColor(GU_RGBA(p->color[0], p->color[1], p->color[2], p->color[3]));
-
-					sceGumUpdateMatrix();
+					glColor4f(p->color[0]/255, p->color[1]/255, p->color[2]/255, p->color[3]/255);
 
 			// sigh. The best would be if the flames were always orthogonal to their surfaces
 			// but I'm afraid it's impossible to get that work (w/o progs modification of course)
@@ -1900,14 +1881,14 @@ void QMB_DrawParticles (void)
 					out[3].x = varray_vertex[12];
                     out[3].y = varray_vertex[13];
                     out[3].z = varray_vertex[14];
-                    // naievil -- fixme
-					//sceGuDrawArray(GL_TRIANGLE_FAN, GU_TEXTURE_32BITF | GU_VERTEX_32BITF, 4, 0, out);
 
-					sceGumPopMatrix ();
-					sceGumUpdateMatrix();
+					glBegin (GL_TRIANGLE_FAN);
+					glVertex4fv (out);
+					glEnd ();
+					glPopMatrix ();
 				}
-				sceGuEnable (GL_CULL_FACE);
-                sceGuColor(GU_RGBA(0xff,0xff,0xff,0xff)); //return to normal color
+				glEnable (GL_CULL_FACE);
+                glColor4f(1,1,1,1); //return to normal color
 			}
 			break;
 
@@ -1926,11 +1907,11 @@ void QMB_DrawParticles (void)
 		}
 	}
 
-	sceGuDepthMask (GL_FALSE);
-	sceGuDisable (GL_BLEND);
-	sceGuBlendFunc (GL_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, 0, 0);
-	sceGuTexFunc(GL_REPLACE, GL_RGBA);
-	sceGuShadeModel (GL_FLAT);
+	glDepthMask (GL_FALSE);
+	glDisable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glShadeModel (GL_FLAT);
 }
 
 void QMB_Shockwave_Splash(vec3_t org, int radius)
@@ -1949,6 +1930,7 @@ void QMB_Shockwave_Splash(vec3_t org, int radius)
 }
 
 extern sfx_t		*cl_sfx_thunder;
+#if 0 // naievil -- midpoint is causing rendering issue for some reason
 void QMB_LetItRain(void)
 {
 	int			i;
@@ -1996,7 +1978,7 @@ void QMB_LetItRain(void)
 		}
 	}
 };
-
+#endif 
 //R00k: revamped to coincide with classic particle style...
 
 void QMB_ParticleExplosion (vec3_t org)
@@ -2031,7 +2013,6 @@ void QMB_ParticleExplosion (vec3_t org)
 		}
 	}
 	else
-
 	{
 		/*	original
 		if (r_explosiontype.value != 3)
@@ -3087,7 +3068,7 @@ void QMB_LaserSight (void)
 			switch ((int)r_laserpoint.value)
 			{
 				case 1:
-					color[0] = color[0] = 000;color[1] = 000;color[2] = 255;color[3] = 50;//B
+					color[0] = 000;color[1] = 000;color[2] = 255;color[3] = 50;//B
 					c = lt_blue;
 					break;
 				case 2:
@@ -3248,7 +3229,7 @@ R_EntityParticles
 void QMB_EntityParticles (entity_t *ent)
 {
 	int			i;
-	float		angle, dist, sr, sp, sy, cr, cp, cy;
+	float		angle, dist, sp, sy, cp, cy;
 	vec3_t		forward, org;
 	col_t		color = {255,255,0,100};
 
@@ -3261,29 +3242,12 @@ void QMB_EntityParticles (entity_t *ent)
 	for (i=0 ; i<NUMVERTEXNORMALS ; i++)
 	{
 		angle = cl.time * avelocities[i][0];
-		#ifdef PSP_VFPU
-		sy = vfpu_sinf(angle);
-		cy = vfpu_cosf(angle);
-		#else
 		sy = sin(angle);
 		cy = cos(angle);
-		#endif
 		angle = cl.time * avelocities[i][1];
-		#ifdef PSP_VFPU
-		sp = vfpu_sinf(angle);
-		cp = vfpu_cosf(angle);
-		#else
 		sp = sin(angle);
 		cp = cos(angle);
-		#endif
 		angle = cl.time * avelocities[i][2];
-		#ifdef PSP_VFPU
-		sr = vfpu_sinf(angle);
-		cr = vfpu_cosf(angle);
-		#else
-		sr = sin(angle);
-		cr = cos(angle);
-		#endif
 
 		forward[0] = cp*cy;
 		forward[1] = cp*sy;
@@ -3301,15 +3265,16 @@ void QMB_FlyParticles (vec3_t origin, int count)
 {
 	float		frametime	= fabs(cl.time - cl.oldtime);
     int         i;
-    float       angle, sr, sp, sy, cr, cp, cy;
+    float       angle, sp, sy, cp, cy;
     vec3_t      forward, org;
     float       dist = 64;
 	col_t		color = {255,255,255,100};
 
     if (frametime)
 	{
-		if (count > NUMVERTEXNORMALS)
+		if (count > NUMVERTEXNORMALS) {
 			count = NUMVERTEXNORMALS;
+		}
 
 		if (!avelocities[0][0])
 		{
@@ -3320,39 +3285,18 @@ void QMB_FlyParticles (vec3_t origin, int count)
 		for (i=0 ; i<count ; i+=2)
 		{
 			angle = cl.time * avelocities[i][0];
-			#ifdef PSP_VFPU
-			sy = vfpu_sinf(angle);
-			cy = vfpu_cosf(angle);
-			#else
 			sy = sin(angle);
 			cy = cos(angle);
-			#endif
 			angle = cl.time * avelocities[i][1];
-			#ifdef PSP_VFPU
-			sp = vfpu_sinf(angle);
-			cp = vfpu_cosf(angle);
-			#else
 			sp = sin(angle);
 			cp = cos(angle);
-			#endif
 			angle = cl.time * avelocities[i][2];
-			#ifdef PSP_VFPU
-			sr = vfpu_sinf(angle);
-			cr = vfpu_cosf(angle);
-			#else
-			sr = sin(angle);
-			cr = cos(angle);
-			#endif
 
 			forward[0] = cp*cy;
 			forward[1] = cp*sy;
 			forward[2] = -sp;
 
-			#ifdef PSP_VFPU
-			dist = vfpu_sinf(cl.time + i)*64;
-			#else
 			dist = sin(cl.time + i)*64;
-			#endif
 			org[0] = origin[0] + r_avertexnormals[i][0]*dist + forward[0]*32;
 			org[1] = origin[1] + r_avertexnormals[i][1]*dist + forward[1]*32;
 			org[2] = origin[2] + r_avertexnormals[i][2]*dist + forward[2]*32;

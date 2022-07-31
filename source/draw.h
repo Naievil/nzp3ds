@@ -46,3 +46,5 @@ extern float loading_cur_step;
 extern int loading_step;
 extern char loading_name[32];
 extern float loading_num_step;
+
+void Clear_LoadingFill (void);

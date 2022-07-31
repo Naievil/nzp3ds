@@ -130,7 +130,7 @@ typedef struct glpoly_s
 	int		numverts;
 	int		flags;			// for SURF_UNDERWATER
 	float	verts[4][VERTEXSIZE];	// variable sized (xyz s1t1 s2t2)
-    vec3_t midpoint;//MHQuake
+//    vec3_t midpoint;//MHQuake // naievil -- fixme: this guy is causing some kind of rendering issue
 } glpoly_t;
 
 typedef struct msurface_s
