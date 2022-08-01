@@ -213,6 +213,22 @@ void R_Init (void)
 
 	Cvar_RegisterVariable (&gl_doubleeyes);
 
+	Cvar_RegisterVariable (&r_explosiontype);
+	Cvar_RegisterVariable (&r_laserpoint);
+	Cvar_RegisterVariable (&r_part_explosions);
+	Cvar_RegisterVariable (&r_part_trails);
+	Cvar_RegisterVariable (&r_part_sparks);
+	Cvar_RegisterVariable (&r_part_gunshots);
+	Cvar_RegisterVariable (&r_part_blood);
+	Cvar_RegisterVariable (&r_part_telesplash);
+	Cvar_RegisterVariable (&r_part_blobs);
+	Cvar_RegisterVariable (&r_part_lavasplash);
+	Cvar_RegisterVariable (&r_part_flames);
+	Cvar_RegisterVariable (&r_part_lightning);
+	Cvar_RegisterVariable (&r_part_flies);
+	Cvar_RegisterVariable (&r_part_muzzleflash);
+	Cvar_RegisterVariable (&r_flametype);
+	//Cvar_RegisterVariable (&r_model_brightness);
 
 	R_InitParticles ();
 	R_InitParticleTexture ();

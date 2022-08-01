@@ -134,11 +134,11 @@ void R_EntityParticles (entity_t *ent)
 	dist = 64;
 	count = 50;
 
-if (!avelocities[0][0])
-{
-for (i=0 ; i<NUMVERTEXNORMALS*3 ; i++)
-avelocities[0][i] = (rand()&255) * 0.01;
-}
+	if (!avelocities[0][0])
+	{
+		for (i=0 ; i<NUMVERTEXNORMALS*3 ; i++)
+			avelocities[0][i] = (rand()&255) * 0.01;
+	}
 
 
 	for (i=0 ; i<NUMVERTEXNORMALS ; i++)
@@ -180,7 +180,7 @@ avelocities[0][i] = (rand()&255) * 0.01;
 R_ClearParticles
 ===============
 */
-void R_ClearParticles (void)
+void R_Clear_Classic_Particles (void)
 {
 	int		i;
 	
@@ -190,6 +190,12 @@ void R_ClearParticles (void)
 	for (i=0 ;i<r_numparticles ; i++)
 		particles[i].next = &particles[i+1];
 	particles[r_numparticles-1].next = NULL;
+}
+
+void R_ClearParticles (void)
+{
+    QMB_ClearParticles ();
+	R_Clear_Classic_Particles();
 }
 
 
@@ -641,12 +647,12 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 
 /*
 ===============
-R_DrawParticles
+R_Classic_DrawParticles
 ===============
 */
 extern	cvar_t	sv_gravity;
 
-void R_DrawParticles (void)
+void R_Classic_DrawParticles (void)
 {
 	particle_t		*p, *kill;
 	float			grav;
@@ -799,3 +805,14 @@ void R_DrawParticles (void)
 #endif
 }
 
+/*
+===============
+R_DrawParticles
+===============
+*/
+
+void R_DrawParticles (void) 
+{
+	R_Classic_DrawParticles ();
+	QMB_DrawParticles ();
+}

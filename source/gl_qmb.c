@@ -167,7 +167,7 @@ typedef struct particle_texture_s
 static	float	sint[7] = {0.000000, 0.781832, 0.974928, 0.433884, -0.433884, -0.974928, -0.781832};
 static	float	cost[7] = {1.000000, 0.623490, -0.222521, -0.900969, -0.900969, -0.222521, 0.623490};
 
-static			particle_t			*particles, *free_particles;
+static			particle_t			*particles, *free_particles, active_particles;
 static			particle_type_t		particle_types[num_particletypes];//R00k
 static	int		particle_type_index[num_particletypes];
 static			particle_texture_t	particle_textures[num_particletextures];
@@ -730,13 +730,15 @@ __inline static void AddParticle (part_type_t type, vec3_t org, int count, float
 
 	//assert (size > 0 && time > 0);
 
-	if (type < 0 || type >= num_particletypes)
+	if (type < 0 || type >= num_particletypes) {
 		Sys_Error ("AddParticle: Invalid type (%d)", type);
+	}
 
 	pt = &particle_types[particle_type_index[type]];
 
 	for (i=0 ; i < count && free_particles ; i++)
 	{
+
 		color = col ? col : ColorForParticle (type);
 
 		INIT_NEW_PARTICLE(pt, p, color, size, time);
@@ -892,7 +894,6 @@ __inline static void AddParticle (part_type_t type, vec3_t org, int count, float
 		case p_muzzleflash8:
 			VectorCopy (org, p->org);
 			p->rotspeed = (rand() & 45) - 90;
-			//p->size = size * (rand() % 6) / 4;//r00k
 			p->size = size * (0.75 +((0.05 * (rand() % 20)) * 0.5));//blubs: resultant size range: [size * 0.75, size * 1.25)
 			break;
 
@@ -1342,7 +1343,9 @@ inline static void QMB_UpdateParticles(void)
 							VectorCopy(stop, p->org);
 							VectorCopy(normal, p->vel);
 							CrossProduct(normal,p->vel,tangent);
+							#if 0 // naievil -- fixme
 							R_SpawnDecal(p->org, normal, tangent, decal_blood3, 12, 0);
+							#endif
 						}
 						p->die = 0;
 					}
@@ -1394,6 +1397,7 @@ inline static void QMB_UpdateParticles(void)
 								}
 							}
 */
+							#if 0// naievil -- fixme
 							if ((pt->id == p_fire || pt->id == p_dpfire) && r_decal_explosions.value)
 							  R_SpawnDecal (p->org, normal, tangent, decal_burn, 32, 0);
 						    else if (pt->id == p_blood1 && r_decal_blood.value)
@@ -1402,6 +1406,7 @@ inline static void QMB_UpdateParticles(void)
 							  R_SpawnDecal (p->org, normal, tangent, decal_blood2, 12, 0);
 						    else if (pt->id == p_q3blood_trail && r_decal_blood.value)
 							  R_SpawnDecal (p->org, normal, tangent, decal_q3blood, 48, 0);
+							  #endif
 
 						}
 					}
@@ -1530,6 +1535,7 @@ void R_CalcBeamVerts (float *vert, vec3_t org1, vec3_t org2, float width)
 	vert[14] = org2[2] + width * right2[2];
 }
 
+/*
 #define DRAW_PARTICLE_BILLBOARD(_ptex, _p, _coord)		\
 	glPushMatrix ();									\
     glTranslatef(_p->org[0], _p->org[1], _p->org[2]);   \
@@ -1561,6 +1567,53 @@ void R_CalcBeamVerts (float *vert, vec3_t org1, vec3_t org2, float width)
 	glEnd ();											\
     glColor4f(1,1,1,1);           						\
 	glPopMatrix ();                                		
+*/
+
+// naievil -- hacky particle drawing...NOT OPTIMIZED -- from NX
+void DRAW_PARTICLE_BILLBOARD(particle_texture_t *ptex, particle_t *p, vec3_t *coord) {
+
+	float			scale;
+	vec3_t			up, right, p_up, p_right, p_upright;
+	GLubyte			color[4], *c;
+
+	VectorScale (vup, 1.5, up);
+	VectorScale (vright, 1.5, right);
+
+	//glEnable (GL_BLEND);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glDepthMask (GL_FALSE);
+	glBegin (GL_QUADS);
+
+	scale = p->size;
+	color[0] = p->color[0];
+	color[1] = p->color[1];
+	color[2] = p->color[2];
+	color[3] = p->color[3];
+	glColor4ubv(color);
+
+	glTexCoord2f (0,0);
+	glVertex3fv (p->org);
+
+	glTexCoord2f (1,0);
+	VectorMA (p->org, scale, up, p_up);
+	glVertex3fv (p_up);
+
+	glTexCoord2f (1,1);
+	VectorMA (p_up, scale, right, p_upright);
+	glVertex3fv (p_upright);
+
+	glTexCoord2f (0,1);
+	VectorMA (p->org, scale, right, p_right);
+	glVertex3fv (p_right);
+
+	glEnd ();
+
+
+	//glDepthMask (GL_TRUE);
+	//glDisable (GL_BLEND);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	//glColor3f(1,1,1);
+}
 
 void QMB_DrawParticles (void)
 {
@@ -1595,8 +1648,10 @@ void QMB_DrawParticles (void)
 	{
 		pt = &particle_types[i];
 
-		if (!pt->start)
+		if (!pt->start) {
+			//Con_Printf("Particle type %d (want %d) does not have start\n", pt->drawtype, pd_billboard);
 			continue;
+		}
 
 		glBlendFunc (pt->SrcBlend, pt->DstBlend);
 
@@ -1756,162 +1811,166 @@ void QMB_DrawParticles (void)
 				glEnable (GL_TEXTURE_2D);
 				break;
 
-		case pd_billboard:
-			ptex = &particle_textures[pt->texture];
-			GL_Bind (ptex->texnum);
-			
-			for (p = pt->start ; p ; p = p->next)
-			{
-				if (particle_time < p->start || particle_time >= p->die)
-					continue;
-
-				for (j = 0 ; j < cl.maxclients ; j++)
+			case pd_billboard:
+				ptex = &particle_textures[pt->texture];
+				GL_Bind (ptex->texnum);
+				
+				for (p = pt->start ; p ; p = p->next)
 				{
-					if (pt->custom != -1 && VectorSupCompare(p->org, cl_entities[1+j].origin, 40))
-					{
-						p->die = 0;
+					if (particle_time < p->start || particle_time >= p->die)
 						continue;
+
+					for (j = 0 ; j < cl.maxclients ; j++)
+					{
+						if (pt->custom != -1 && VectorSupCompare(p->org, cl_entities[1+j].origin, 40))
+						{
+							p->die = 0;
+							continue;
+						}
+					}
+					
+					if(pt->texture == ptex_muzzleflash || pt->texture == ptex_muzzleflash2 || pt->texture == ptex_muzzleflash3) {
+						glDepthRange(0, 19660);
+						glEnable(GL_ALPHA_TEST);
+					}
+					
+					DRAW_PARTICLE_BILLBOARD(ptex, p, billboard);
+					
+					if(pt->texture == ptex_muzzleflash || pt->texture == ptex_muzzleflash2 || pt->texture == ptex_muzzleflash3) {
+						glDepthRange(0, 65535);
+						glDisable(GL_ALPHA_TEST);
 					}
 				}
-				
-				if(pt->texture == ptex_muzzleflash || pt->texture == ptex_muzzleflash2 || pt->texture == ptex_muzzleflash3)
-					glDepthRange(0, 19660);
-				
-				DRAW_PARTICLE_BILLBOARD(ptex, p, billboard);
-				
-				if(pt->texture == ptex_muzzleflash || pt->texture == ptex_muzzleflash2 || pt->texture == ptex_muzzleflash3)
-					glDepthRange(0, 65535);
-			}
-			break;
-
-		case pd_billboard_vel:
-			ptex = &particle_textures[pt->texture];
-			GL_Bind (ptex->texnum);
-			for (p = pt->start ; p ; p = p->next)
-			{
-				if (particle_time < p->start || particle_time >= p->die)
-					continue;
-
-				VectorCopy (p->vel, up);
-				CrossProduct (vpn, up, right);
-				VectorNormalizeFast (right);
-				VectorScale (up, pt->custom, up);
-
-				VectorAdd (up, right, velcoord[2]);
-				VectorSubtract (right, up, velcoord[3]);
-				VectorNegate (velcoord[2], velcoord[0]);
-				VectorNegate (velcoord[3], velcoord[1]);
-				DRAW_PARTICLE_BILLBOARD(ptex, p, velcoord);
-			}
-			break;
-
-		case pd_q3flame:
-			ptex = &particle_textures[pt->texture];
-			GL_Bind (ptex->texnum);
-			for (p = pt->start ; p ; p = p->next)
-			{
-				float	varray_vertex[16];
-				float	xhalf = p->size / 2.0, yhalf = p->size;
-			//	vec3_t	org, v, end, normal;
-
-				if (particle_time < p->start || particle_time >= p->die)
-					continue;
-
-				glDisable (GL_CULL_FACE);
-
-				for (j=0 ; j<2 ; j++)
-				{
-					glPushMatrix ();
-
-	                glTranslatef(p->org[0], p->org[1], p->org[2]);
-
-					//glRotatef (!j ? 45 : -45, 0, 0, 1);
-
-	                // naievil -- I don't know the equivalent of this
-	                //sceGumRotateZ(!j ? 45 : -45 * (M_PI / 180.0f));
-
-					glColor4f(p->color[0]/255, p->color[1]/255, p->color[2]/255, p->color[3]/255);
-
-			// sigh. The best would be if the flames were always orthogonal to their surfaces
-			// but I'm afraid it's impossible to get that work (w/o progs modification of course)
-					varray_vertex[0] = 0;
-					varray_vertex[1] = xhalf;
-					varray_vertex[2] = -yhalf;
-					varray_vertex[4] = 0;
-					varray_vertex[5] = xhalf;
-					varray_vertex[6] = yhalf;
-					varray_vertex[8] = 0;
-					varray_vertex[9] = -xhalf;
-					varray_vertex[10] = yhalf;
-					varray_vertex[12] = 0;
-					varray_vertex[13] = -xhalf;
-					varray_vertex[14] = -yhalf;
-
-                    struct vertex
-		            {
-                    float u, v;
-					float x, y, z;
-		            };
-
-					struct vertex* const out = (struct vertex*)(malloc(sizeof(struct vertex) * 4));
-
-					out[0].u = ptex->coords[p->texindex][0];
-					out[0].v = ptex->coords[p->texindex][3];
-					out[0].x = varray_vertex[0];
-                    out[0].y = varray_vertex[1];
-                    out[0].z = varray_vertex[2];
-
-
-					out[1].u = ptex->coords[p->texindex][0];
-					out[1].v = ptex->coords[p->texindex][1];
-					out[1].x = varray_vertex[4];
-                    out[1].y = varray_vertex[5];
-                    out[1].z = varray_vertex[6];
-
-
-					out[2].u = ptex->coords[p->texindex][2];
-					out[2].v = ptex->coords[p->texindex][1];
-					out[2].x = varray_vertex[8];
-                    out[2].y = varray_vertex[9];
-                    out[2].z = varray_vertex[10];
-
-
-					out[3].u = ptex->coords[p->texindex][2];
-					out[3].v = ptex->coords[p->texindex][3];
-					out[3].x = varray_vertex[12];
-                    out[3].y = varray_vertex[13];
-                    out[3].z = varray_vertex[14];
-
-					glBegin (GL_TRIANGLE_FAN);
-					glVertex4fv (out);
-					glEnd ();
-					glPopMatrix ();
-				}
-				glEnable (GL_CULL_FACE);
-                glColor4f(1,1,1,1); //return to normal color
-			}
-			break;
-
-		case pd_q3gunshot:
-			for (p = pt->start ; p ; p = p->next)
-				QMB_Q3Gunshot (p->org, (int)p->texindex, (float)p->color[3] / 255.0);
-			break;
-
-		case pd_q3teleport:
-			for (p = pt->start ; p ; p = p->next)
-				QMB_Q3Teleport (p->org, (float)p->color[3] / 255.0);
-			break;
-		default:
-				//assert (!"QMB_DrawParticles: unexpected drawtype");
 				break;
+
+			case pd_billboard_vel:
+				ptex = &particle_textures[pt->texture];
+				GL_Bind (ptex->texnum);
+				for (p = pt->start ; p ; p = p->next)
+				{
+					if (particle_time < p->start || particle_time >= p->die)
+						continue;
+
+					VectorCopy (p->vel, up);
+					CrossProduct (vpn, up, right);
+					VectorNormalizeFast (right);
+					VectorScale (up, pt->custom, up);
+
+					VectorAdd (up, right, velcoord[2]);
+					VectorSubtract (right, up, velcoord[3]);
+					VectorNegate (velcoord[2], velcoord[0]);
+					VectorNegate (velcoord[3], velcoord[1]);
+					DRAW_PARTICLE_BILLBOARD(ptex, p, velcoord);
+				}
+				break;
+
+			case pd_q3flame:
+				ptex = &particle_textures[pt->texture];
+				GL_Bind (ptex->texnum);
+				for (p = pt->start ; p ; p = p->next)
+				{
+					float	varray_vertex[16];
+					float	xhalf = p->size / 2.0, yhalf = p->size;
+				//	vec3_t	org, v, end, normal;
+
+					if (particle_time < p->start || particle_time >= p->die)
+						continue;
+
+					glDisable (GL_CULL_FACE);
+
+					for (j=0 ; j<2 ; j++)
+					{
+						glPushMatrix ();
+
+		                glTranslatef(p->org[0], p->org[1], p->org[2]);
+
+						//glRotatef (!j ? 45 : -45, 0, 0, 1);
+
+		                // naievil -- I don't know the equivalent of this
+		                //sceGumRotateZ(!j ? 45 : -45 * (M_PI / 180.0f));
+
+						glColor4f(p->color[0]/255, p->color[1]/255, p->color[2]/255, p->color[3]/255);
+
+				// sigh. The best would be if the flames were always orthogonal to their surfaces
+				// but I'm afraid it's impossible to get that work (w/o progs modification of course)
+						varray_vertex[0] = 0;
+						varray_vertex[1] = xhalf;
+						varray_vertex[2] = -yhalf;
+						varray_vertex[4] = 0;
+						varray_vertex[5] = xhalf;
+						varray_vertex[6] = yhalf;
+						varray_vertex[8] = 0;
+						varray_vertex[9] = -xhalf;
+						varray_vertex[10] = yhalf;
+						varray_vertex[12] = 0;
+						varray_vertex[13] = -xhalf;
+						varray_vertex[14] = -yhalf;
+
+	                    struct vertex
+			            {
+	                    float u, v;
+						float x, y, z;
+			            };
+
+						struct vertex* const out = (struct vertex*)(malloc(sizeof(struct vertex) * 4));
+
+						out[0].u = ptex->coords[p->texindex][0];
+						out[0].v = ptex->coords[p->texindex][3];
+						out[0].x = varray_vertex[0];
+	                    out[0].y = varray_vertex[1];
+	                    out[0].z = varray_vertex[2];
+
+
+						out[1].u = ptex->coords[p->texindex][0];
+						out[1].v = ptex->coords[p->texindex][1];
+						out[1].x = varray_vertex[4];
+	                    out[1].y = varray_vertex[5];
+	                    out[1].z = varray_vertex[6];
+
+
+						out[2].u = ptex->coords[p->texindex][2];
+						out[2].v = ptex->coords[p->texindex][1];
+						out[2].x = varray_vertex[8];
+	                    out[2].y = varray_vertex[9];
+	                    out[2].z = varray_vertex[10];
+
+
+						out[3].u = ptex->coords[p->texindex][2];
+						out[3].v = ptex->coords[p->texindex][3];
+						out[3].x = varray_vertex[12];
+	                    out[3].y = varray_vertex[13];
+	                    out[3].z = varray_vertex[14];
+
+						glBegin (GL_TRIANGLE_FAN);
+						glVertex4fv (out);
+						glEnd ();
+						glPopMatrix ();
+					}
+					glEnable (GL_CULL_FACE);
+	                glColor4f(1,1,1,1); //return to normal color
+				}
+				break;
+
+			case pd_q3gunshot:
+				for (p = pt->start ; p ; p = p->next)
+					QMB_Q3Gunshot (p->org, (int)p->texindex, (float)p->color[3] / 255.0);
+				break;
+
+			case pd_q3teleport:
+				for (p = pt->start ; p ; p = p->next)
+					QMB_Q3Teleport (p->org, (float)p->color[3] / 255.0);
+				break;
+			default:
+					//assert (!"QMB_DrawParticles: unexpected drawtype");
+					break;
 		}
 	}
 
-	glDepthMask (GL_FALSE);
+	//glDepthMask (GL_FALSE);
 	glDisable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glShadeModel (GL_FLAT);
+	glShadeModel (GL_SMOOTH);
 }
 
 void QMB_Shockwave_Splash(vec3_t org, int radius)
@@ -2603,11 +2662,6 @@ void QMB_MuzzleFlash(vec3_t org)
 		org[2] -= 32 - sv_player->v.view_ofs[2];
 	else
 		org[2] -= 32 + abs(sv_player->v.view_ofs[2]);
-	/*if (sv_player->v.view_ofs[2] == 8) {
-		org[2] -= 24;
-	} else if (sv_player->v.view_ofs[2] == -10) {
-		org[2] -= 42;
-	}*/
 
 	float size;
 
@@ -2615,8 +2669,10 @@ void QMB_MuzzleFlash(vec3_t org)
 	{
 		size = sv_player->v.Flash_Size;
 		
-		if(size == 0 || cl.stats[STAT_ZOOM] == 2)
+		if(size == 0 || cl.stats[STAT_ZOOM] == 2)   {
 			return;
+		}
+
         switch(rand() % 3 + 1)
         {
             case 1:
@@ -3171,6 +3227,7 @@ void QMB_LightningBeam (vec3_t start, vec3_t end)
 	}
 }
 
+#if 0
 void R_DrawQ3Model (entity_t *ent);
 
 void QMB_Q3Gunshot (vec3_t org, int skinnum, float alpha)
@@ -3215,6 +3272,20 @@ void QMB_Q3Teleport (vec3_t org, float alpha)
 
 	R_DrawQ3Model (ent);
 }
+
+
+#else 
+void QMB_Q3Gunshot (vec3_t org, int skinnum, float alpha)
+{
+	Con_Printf("Q3 drawing is not enabled!\n");
+}
+
+void QMB_Q3Teleport (vec3_t org, float alpha)
+{
+	Con_Printf("Q3 drawing is not enabled!\n");
+}
+#endif
+
 
 #define NUMVERTEXNORMALS	162
 

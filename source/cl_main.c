@@ -580,7 +580,6 @@ void CL_RelinkEntities (void)
 
 		if (ent->effects & EF_MUZZLEFLASH)
 		{
-
 			if (i == cl.viewentity && qmb_initialized && r_part_muzzleflash.value)
 			{
 				vec3_t		start, smokeorg, v_forward, v_right, v_up;
@@ -615,7 +614,6 @@ void CL_RelinkEntities (void)
 					QMB_RayFlash(smokeorg, sv_player->v.weapon);
 				}
 			}
-
 		}
 
 		if (ent->modelindex != cl_modelindex[mi_player] && ent->model->modhint != MOD_PLAYER)
