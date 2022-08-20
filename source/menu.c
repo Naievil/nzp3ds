@@ -46,7 +46,7 @@ achievement_list_t achievement_list[MAX_ACHIEVEMENTS];
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
-enum {m_none, m_main, m_singleplayer, m_load, m_save, m_custommaps, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_serialconfig, m_modemconfig, m_lanconfig, m_gameoptions, m_search, m_slist} m_state;
+enum {m_none, m_main, m_singleplayer, m_load, m_save, m_custommaps, m_setup, m_net, m_options, m_video, m_keys, m_quit, m_serialconfig, m_modemconfig, m_lanconfig, m_gameoptions, m_search, m_slist} m_state;
 
 void M_Menu_Main_f (void);
 	void M_Menu_SinglePlayer_f (void);
@@ -54,7 +54,6 @@ void M_Menu_Main_f (void);
 	void M_Menu_Options_f (void);
 		void M_Menu_Keys_f (void);
 		void M_Menu_Video_f (void);
-	void M_Menu_Help_f (void);
 	void M_Menu_Quit_f (void);
 void M_Menu_GameOptions_f (void);
 
@@ -64,7 +63,6 @@ void M_Main_Draw (void);
 	void M_Options_Draw (void);
 		void M_Keys_Draw (void);
 		void M_Video_Draw (void);
-	void M_Help_Draw (void);
 	void M_Quit_Draw (void);
 
 void M_Main_Key (int key);
@@ -73,7 +71,6 @@ void M_Main_Key (int key);
 	void M_Options_Key (int key);
 		void M_Keys_Key (int key);
 		void M_Video_Key (int key);
-	void M_Help_Key (int key);
 	void M_Quit_Key (int key);
 void M_GameOptions_Key (int key);
 
@@ -233,7 +230,7 @@ void M_ToggleMenu_f (void)
 /* MAIN MENU */
 
 int	m_main_cursor;
-#define	MAIN_ITEMS	5
+#define	MAIN_ITEMS	4
 
 
 void M_Menu_Main_f (void)
@@ -257,8 +254,7 @@ void M_Main_Draw (void)
 	MAIN_MENU_ITEMS[0] = "Single Player";
 	MAIN_MENU_ITEMS[1] = "Multi Player";
 	MAIN_MENU_ITEMS[2] = "Options";
-	MAIN_MENU_ITEMS[3] = "Help";
-	MAIN_MENU_ITEMS[4] = "Quit";
+	MAIN_MENU_ITEMS[3] = "Quit";
 
 	for (int i = 0; i < MAIN_ITEMS; i++) {
 		Draw_String(vid.width/4, vid.height/4 + (16 * i), MAIN_MENU_ITEMS[i]);
@@ -304,10 +300,6 @@ void M_Main_Key (int key)
 			break;
 
 		case 3:
-			M_Menu_Help_f ();
-			break;
-
-		case 4:
 			M_Menu_Quit_f ();
 			break;
 		}
@@ -458,9 +450,10 @@ void Map_Finder(void)
 	for (int i = 0; i < 50; i++) {
 		custom_maps[i].occupied = false;
 	}
-	/*
+	
 	while(dp=readdir(dir))
 	{
+		
 		if(dp->d_name[0] == '.')
 		{
 			continue;
@@ -487,12 +480,11 @@ void Map_Finder(void)
 
 			FILE    *setting_file;			
 			setting_file = fopen(setting_path, "rb");
-
-			fseek(setting_file, 0L, SEEK_END);
-			size_t sz = ftell(setting_file);
-			fseek(setting_file, 0L, SEEK_SET);
-
 			if (setting_file != NULL) {
+
+				fseek(setting_file, 0L, SEEK_END);
+				size_t sz = ftell(setting_file);
+				fseek(setting_file, 0L, SEEK_SET);
 
 				int state;
 				state = 0;
@@ -538,7 +530,7 @@ void Map_Finder(void)
 			}
 			user_maps_num++;
 		}
-	}*/
+	}
     closedir(dir); // close the handle (pointer)
 	custom_map_pages = (int)ceil((double)(user_maps_num + 1)/15);
 }
@@ -556,7 +548,7 @@ void M_Menu_CustomMaps_f (void)
 void M_Menu_CustomMaps_Draw (void)
 {
 	// Background
-	Draw_Pic(0, 0, menu_bk);
+	// Draw_Pic(0, 0, menu_bk); // naievil -- why are we doing this if we fill it?
 
 	// Fill black to make everything easier to see
 	Draw_FillByColor(0, 0, 480, 272, 0, 0, 0, 102);
@@ -584,7 +576,9 @@ void M_Menu_CustomMaps_Draw (void)
 
 			if (custom_maps[i + multiplier].map_use_thumbnail == 1) {
 				menu_cuthum = Draw_CachePic(custom_maps[i + multiplier].map_thumbnail_path);
-				Draw_Pic(256, 45, menu_cuthum);
+				if (menu_cuthum != NULL) {
+					Draw_Pic(256, 45, menu_cuthum);
+				}
 			}
 			
 			if (custom_maps[i + multiplier].map_name_pretty != 0)
@@ -594,55 +588,55 @@ void M_Menu_CustomMaps_Draw (void)
 
 			if (custom_maps[i + multiplier].map_desc_1 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_1, " ") != 0) {
-					Draw_ColoredString(215, 155, custom_maps[i + multiplier].map_desc_1, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 155, custom_maps[i + multiplier].map_desc_1, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_2 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_2, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 165, custom_maps[i + multiplier].map_desc_2, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 165, custom_maps[i + multiplier].map_desc_2, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_3 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_3, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 175, custom_maps[i + multiplier].map_desc_3, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 175, custom_maps[i + multiplier].map_desc_3, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_4 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_4, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 185, custom_maps[i + multiplier].map_desc_4, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 185, custom_maps[i + multiplier].map_desc_4, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_5 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_5, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 195, custom_maps[i + multiplier].map_desc_5, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 195, custom_maps[i + multiplier].map_desc_5, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_6 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_6, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 205, custom_maps[i + multiplier].map_desc_6, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 205, custom_maps[i + multiplier].map_desc_6, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_7 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_7, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 215, custom_maps[i + multiplier].map_desc_7, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 215, custom_maps[i + multiplier].map_desc_7, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_desc_8 != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_desc_8, " ") != 0) {
 					line_increment++;
-					Draw_ColoredString(215, 225, custom_maps[i + multiplier].map_desc_8, 255, 255, 255, 255, 1);
+					Draw_ColoredString(140, 225, custom_maps[i + multiplier].map_desc_8, 255, 255, 255, 255, 1);
 				}
 			}
 			if (custom_maps[i + multiplier].map_author != 0) {
 				if (strcmp(custom_maps[i + multiplier].map_author, " ") != 0) {
 					int y = 165 + (10 * line_increment);
-					Draw_ColoredString(215, y, custom_maps[i + multiplier].map_author, 255, 255, 0, 255, 1);
+					Draw_ColoredString(140, y, custom_maps[i + multiplier].map_author, 255, 255, 0, 255, 1);
 				}
 			}
 		} else {
@@ -701,7 +695,7 @@ void M_Menu_CustomMaps_Key (int key)
 				m_map_cursor = 16;
 			
 			if (m_map_cursor == 16 && current_custom_map_page == 1)
-				m_map_cursor = 17;
+				m_map_cursor = 0; // naievil -- was 17, but we don't have a back button print
 
 			if (m_map_cursor >= 18)
 				m_map_cursor = 0;
@@ -712,7 +706,7 @@ void M_Menu_CustomMaps_Key (int key)
 			m_map_cursor--;
 
 			if (m_map_cursor < 0)
-				m_map_cursor = 17;
+				m_map_cursor = 16; // naievil -- was 17, but we don't have a back button print?
 
 			if (m_map_cursor == 16 && current_custom_map_page == 1)
 				m_map_cursor = 15;
@@ -1200,51 +1194,6 @@ void M_Video_Draw (void)
 void M_Video_Key (int key)
 {
 	(*vid_menukeyfn) (key);
-}
-
-//=============================================================================
-/* HELP MENU */
-
-int		help_page;
-#define	NUM_HELP_PAGES	6
-
-
-void M_Menu_Help_f (void)
-{
-	key_dest = key_menu;
-	m_state = m_help;
-	m_entersound = true;
-	help_page = 0;
-}
-
-
-
-void M_Help_Draw (void)
-{
-
-}
-
-
-void M_Help_Key (int key)
-{
-	switch (key)
-	{
-
-	case K_UPARROW:
-	case K_RIGHTARROW:
-		m_entersound = true;
-		if (++help_page >= NUM_HELP_PAGES)
-			help_page = 0;
-		break;
-
-	case K_DOWNARROW:
-	case K_LEFTARROW:
-		m_entersound = true;
-		if (--help_page < 0)
-			help_page = NUM_HELP_PAGES-1;
-		break;
-	}
-
 }
 
 //=============================================================================
@@ -1772,7 +1721,6 @@ void M_Init (void)
 	Cmd_AddCommand ("menu_options", M_Menu_Options_f);
 	Cmd_AddCommand ("menu_keys", M_Menu_Keys_f);
 	Cmd_AddCommand ("menu_video", M_Menu_Video_f);
-	Cmd_AddCommand ("help", M_Menu_Help_f);
 	Cmd_AddCommand ("menu_quit", M_Menu_Quit_f);
 
 	Map_Finder();
@@ -1830,10 +1778,6 @@ void M_Draw (void)
 		M_Video_Draw ();
 		break;
 
-	case m_help:
-		M_Help_Draw ();
-		break;
-
 	case m_quit:
 		M_Quit_Draw ();
 		break;
@@ -1887,10 +1831,6 @@ void M_Keydown (int key)
 
 	case m_video:
 		M_Video_Key (key);
-		return;
-
-	case m_help:
-		M_Help_Key (key);
 		return;
 
 	case m_quit:
